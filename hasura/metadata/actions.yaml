@@ -2,14 +2,14 @@ actions:
   - name: approveStep
     definition:
       kind: synchronous
-      handler: https://plaster-satisfied-outbound.ngrok-free.dev/actions/approve-step
+      handler: https://fluxo-fcoz.onrender.com/actions/approve-step
     permissions:
       - role: user
     comment: ""
   - name: triggerWorkflowRun
     definition:
       kind: synchronous
-      handler: https://plaster-satisfied-outbound.ngrok-free.dev/actions/trigger-workflow-run
+      handler: https://fluxo-fcoz.onrender.com/actions/trigger-workflow-run
     permissions:
       - role: user
     comment: ""

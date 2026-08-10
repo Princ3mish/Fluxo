@@ -94,4 +94,4 @@ event_triggers:
       interval_sec: 10
       num_retries: 0
       timeout_sec: 60
-    webhook: https://plaster-satisfied-outbound.ngrok-free.dev/internal/handle-db-event
+    webhook: https://fluxo-fcoz.onrender.com/internal/handle-db-event
