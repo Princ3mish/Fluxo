@@ -1,0 +1,33 @@
+# Dependencies & environments
+node_modules/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables & secrets
+.env
+.env*.local
+*.env
+SEED_USERS.md
+call_state.json
+*.tmp
+seed.ps1
+seed_orgids.tmp
+seed_userids.tmp
+
+# Build outputs
+dist/
+dist-ssr/
+*.local
+
+# Nhost & local tools
+.nhost/
+nhost/.temp/
+
+# IDE & OS files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
