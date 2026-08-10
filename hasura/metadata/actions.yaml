@@ -1,0 +1,22 @@
+actions:
+  - name: approveStep
+    definition:
+      kind: synchronous
+      handler: https://plaster-satisfied-outbound.ngrok-free.dev/actions/approve-step
+    permissions:
+      - role: user
+    comment: ""
+  - name: triggerWorkflowRun
+    definition:
+      kind: synchronous
+      handler: https://plaster-satisfied-outbound.ngrok-free.dev/actions/trigger-workflow-run
+    permissions:
+      - role: user
+    comment: ""
+custom_types:
+  enums: []
+  input_objects: []
+  objects:
+    - name: TriggerRunOutput
+    - name: ApproveStepOutput
+  scalars: []

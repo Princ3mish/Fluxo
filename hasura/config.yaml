@@ -1,0 +1,7 @@
+endpoint: https://tkdtsittqfbcopmhmwrq.hasura.ap-south-1.nhost.run
+admin_secret: ',xqq:*uHdo8jIF1oOZ7sq+8F*$HK;QIV'
+version: 3
+metadata_directory: metadata
+actions:
+  kind: synchronous
+  handler_webhook_baseurl: http://localhost:3000

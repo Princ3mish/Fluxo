@@ -1,0 +1,97 @@
+table:
+  name: workflow_triggers
+  schema: public
+object_relationships:
+  - name: workflow
+    using:
+      foreign_key_constraint_on: workflow_id
+insert_permissions:
+  - role: user
+    permission:
+      check:
+        _or:
+          - type:
+              _neq: webhook
+            workflow:
+              organization:
+                org_members:
+                  role:
+                    _in:
+                      - owner
+                      - editor
+                  user_id:
+                    _eq: X-Hasura-User-Id
+          - type:
+              _eq: webhook
+            workflow:
+              organization:
+                org_members:
+                  role:
+                    _eq: owner
+                  user_id:
+                    _eq: X-Hasura-User-Id
+      columns:
+        - workflow_id
+        - type
+        - config
+select_permissions:
+  - role: user
+    permission:
+      columns: '*'
+      filter:
+        workflow:
+          organization:
+            org_members:
+              user_id:
+                _eq: X-Hasura-User-Id
+update_permissions:
+  - role: user
+    permission:
+      columns:
+        - type
+        - config
+      filter:
+        _or:
+          - type:
+              _neq: webhook
+            workflow:
+              organization:
+                org_members:
+                  role:
+                    _in:
+                      - owner
+                      - editor
+                  user_id:
+                    _eq: X-Hasura-User-Id
+          - type:
+              _eq: webhook
+            workflow:
+              organization:
+                org_members:
+                  role:
+                    _eq: owner
+                  user_id:
+                    _eq: X-Hasura-User-Id
+      check: {}
+delete_permissions:
+  - role: user
+    permission:
+      filter:
+        workflow:
+          organization:
+            org_members:
+              role:
+                _eq: owner
+              user_id:
+                _eq: X-Hasura-User-Id
+event_triggers:
+  - name: on_step_runs_insert_db_event
+    definition:
+      enable_manual: false
+      insert:
+        columns: '*'
+    retry_conf:
+      interval_sec: 10
+      num_retries: 0
+      timeout_sec: 60
+    webhook: https://plaster-satisfied-outbound.ngrok-free.dev/internal/handle-db-event
