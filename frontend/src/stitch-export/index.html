@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AutoFlow - Workflow Builder</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;family=Public+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-variant": "#34343d",
+                      "primary-fixed": "#e1e0ff",
+                      "on-surface": "#e4e1ed",
+                      "surface-container-low": "#1b1b23",
+                      "primary-fixed-dim": "#c0c1ff",
+                      "tertiary": "#ffb783",
+                      "on-tertiary-container": "#452000",
+                      "error": "#ffb4ab",
+                      "on-secondary-fixed": "#13144a",
+                      "on-background": "#e4e1ed",
+                      "surface-container-lowest": "#0d0d15",
+                      "primary-container": "#8083ff",
+                      "secondary-fixed-dim": "#c0c1ff",
+                      "outline-variant": "#464554",
+                      "on-tertiary": "#4f2500",
+                      "on-primary-container": "#0d0096",
+                      "error-container": "#93000a",
+                      "inverse-surface": "#e4e1ed",
+                      "on-tertiary-fixed": "#301400",
+                      "surface-container": "#1f1f27",
+                      "on-surface-variant": "#c7c4d7",
+                      "on-secondary-container": "#b2b3f2",
+                      "tertiary-fixed-dim": "#ffb783",
+                      "surface-tint": "#c0c1ff",
+                      "surface-bright": "#393841",
+                      "surface-container-high": "#292932",
+                      "on-secondary-fixed-variant": "#404178",
+                      "on-secondary": "#292a60",
+                      "on-primary": "#1000a9",
+                      "secondary-container": "#42447b",
+                      "surface": "#13131b",
+                      "on-primary-fixed-variant": "#2f2ebe",
+                      "on-error": "#690005",
+                      "inverse-on-surface": "#303038",
+                      "primary": "#c0c1ff",
+                      "inverse-primary": "#494bd6",
+                      "secondary-fixed": "#e1e0ff",
+                      "on-tertiary-fixed-variant": "#703700",
+                      "on-primary-fixed": "#07006c",
+                      "tertiary-fixed": "#ffdcc5",
+                      "surface-container-highest": "#34343d",
+                      "background": "#13131b",
+                      "surface-dim": "#13131b",
+                      "tertiary-container": "#d97721",
+                      "outline": "#908fa0",
+                      "secondary": "#c0c1ff",
+                      "on-error-container": "#ffdad6"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {},
+              "fontFamily": {
+                      "headline": [
+                              "Inter"
+                      ],
+                      "display": [
+                              "Inter"
+                      ],
+                      "body": [
+                              "Inter"
+                      ],
+                      "label": [
+                              "Public Sans"
+                      ]
+              },
+              "fontSize": {}
+      },
+          },
+        }
+      </script>
+<style>
+        .dot-grid {
+            background-size: 20px 20px;
+            background-image: radial-gradient(circle at 1px 1px, theme('colors.outline-variant') 1px, transparent 0);
+        }
+        
+        .pulse-ring {
+            animation: pulse-ring 2s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        }
+        
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(192, 193, 255, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(192, 193, 255, 0); }
+            100% { transform: scale(0.8); box-shadow: 0 0 0 0 rgba(192, 193, 255, 0); }
+        }
+
+        /* Connecting lines for SVG overlay */
+        .flow-line {
+            stroke: theme('colors.outline-variant');
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 4;
+            animation: dash 10s linear infinite;
+        }
+
+        .flow-line-active {
+            stroke: theme('colors.primary');
+            stroke-width: 2;
+            fill: none;
+            stroke-dasharray: 4;
+            animation: dash 5s linear infinite;
+        }
+
+        @keyframes dash {
+            to { stroke-dashoffset: -100; }
+        }
+        
+        .node-port {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: theme('colors.surface');
+            border: 2px solid theme('colors.outline-variant');
+            position: absolute;
+        }
+        .node-port.input { left: -6px; top: 50%; transform: translateY(-50%); }
+        .node-port.output { right: -6px; top: 50%; transform: translateY(-50%); }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body h-screen flex flex-col overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopNav from JSON Anchor -->
+<header class="bg-surface text-primary font-body text-sm font-medium border-b border-outline-variant flat no shadows flex justify-between items-center w-full px-4 h-14 sticky top-0 z-50">
+<!-- Brand/Left -->
+<div class="flex items-center space-x-6">
+<span class="text-lg font-headline font-bold text-on-surface tracking-tight">AutoFlow</span>
+<nav class="hidden md:flex space-x-1">
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors duration-150 px-3 py-1.5 rounded-lg cursor-pointer active:opacity-80 flex items-center h-full" href="#">Workflows</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors duration-150 px-3 py-1.5 rounded-lg cursor-pointer active:opacity-80 flex items-center h-full" href="#">Runs</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors duration-150 px-3 py-1.5 rounded-lg cursor-pointer active:opacity-80 flex items-center h-full" href="#">Assets</a>
+<a class="text-on-surface-variant hover:text-on-surface hover:bg-surface-variant transition-colors duration-150 px-3 py-1.5 rounded-lg cursor-pointer active:opacity-80 flex items-center h-full" href="#">Settings</a>
+</nav>
+</div>
+<!-- Center (Org Dropdown) -->
+<div class="absolute left-1/2 transform -translate-x-1/2 hidden lg:flex items-center">
+<button class="flex items-center space-x-2 bg-surface-container-low hover:bg-surface-variant px-3 py-1.5 rounded-lg border border-outline-variant transition-colors">
+<span class="material-symbols-outlined text-sm">corporate_fare</span>
+<span class="text-sm font-medium text-on-surface">Acme Corp</span>
+<span class="material-symbols-outlined text-sm text-on-surface-variant">expand_more</span>
+</button>
+</div>
+<!-- Trailing/Right Actions -->
+<div class="flex items-center space-x-4">
+<!-- Quota Indicator -->
+<div class="hidden sm:flex items-center text-xs text-on-surface-variant">
+<span class="inline-block w-2 h-2 rounded-full bg-tertiary mr-2"></span>
+                342 / 1000 calls
+            </div>
+<div class="flex items-center space-x-2">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-variant p-1.5 rounded-lg transition-colors cursor-pointer active:opacity-80" data-icon="notifications">notifications</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-variant p-1.5 rounded-lg transition-colors cursor-pointer active:opacity-80" data-icon="help">help</button>
+</div>
+<div class="flex items-center space-x-2">
+<button class="text-on-surface bg-surface-container-high hover:bg-surface-variant border border-outline-variant px-4 py-1.5 rounded-lg transition-colors text-sm font-medium">Run</button>
+<button class="bg-primary text-on-primary hover:bg-primary-fixed-dim px-4 py-1.5 rounded-lg transition-colors text-sm font-semibold shadow-sm">Publish</button>
+</div>
+<div class="h-8 w-8 rounded-full bg-surface-variant overflow-hidden border border-outline-variant flex-shrink-0 cursor-pointer">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="A small, professional avatar portrait of a user in a clean, corporate setting. Studio lighting, sharp focus, minimalist background. 8k resolution, highly detailed." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOutQSO1jMGTQXVy-LnRtZDlRRe86V0HeQcZUMOj0Y6mGp94fOFepaWUTRopk0WeCtcW6WSBlS2UOL7CVDzPvHf6OjhnLAMNxJmhfqaIeNgmdaVnS5RjO-7indXBAG8sQW4t6PoPrV_ECEHKq3oMFpUHlyri7L5s0d0iuguYssFVuqERJyFQaiVA9pqWA5sz9jhU7SuJT0jYWS9Llq-s49cPWAi2YPN_ClHa2UfkpUTOunTW83uoP5NiF_eQ6onGntMYhPCIoue6I"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1 h-[calc(100vh-3.5rem)] overflow-hidden">
+<!-- Left Sidebar (Automation Library) -->
+<aside class="bg-surface-container-low text-primary font-label text-xs font-semibold uppercase tracking-wider h-full w-64 border-r border-outline-variant flat no shadows flex flex-col py-4 space-y-2 shrink-0 z-20">
+<!-- Header -->
+<div class="px-4 pb-4 mb-2 border-b border-outline-variant flex items-center justify-between">
+<div>
+<h2 class="text-on-surface font-headline font-black normal-case text-base tracking-normal">Automation Library</h2>
+<span class="text-[10px] text-on-surface-variant normal-case tracking-normal">v2.4.0</span>
+</div>
+</div>
+<!-- CTA -->
+<div class="px-4 mb-4">
+<button class="w-full bg-surface-container-highest hover:bg-surface-variant text-on-surface border border-outline-variant rounded-lg py-2 px-3 flex items-center justify-center space-x-2 transition-all duration-200">
+<span class="material-symbols-outlined text-sm">add</span>
+<span class="normal-case">New Node</span>
+</button>
+</div>
+<!-- Nodes List -->
+<div class="flex-1 overflow-y-auto px-2 space-y-1">
+<div class="text-on-surface-variant text-[10px] px-2 mb-2 mt-2">Triggers</div>
+<div class="text-on-surface-variant hover:bg-surface-variant rounded-lg mx-2 transition-all duration-200 active:scale-95 cursor-grab flex items-center p-2 group border border-transparent hover:border-outline-variant">
+<div class="bg-surface p-1.5 rounded-md border border-outline-variant mr-3 group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm">api</span>
+</div>
+<div class="flex-1">
+<div class="text-sm text-on-surface normal-case font-medium tracking-normal">Webhook</div>
+<div class="text-[10px] text-on-surface-variant normal-case tracking-normal font-normal truncate">Incoming HTTP POST</div>
+</div>
+</div>
+<div class="text-on-surface-variant text-[10px] px-2 mb-2 mt-4">Actions</div>
+<div class="text-on-surface-variant hover:bg-surface-variant rounded-lg mx-2 transition-all duration-200 active:scale-95 cursor-grab flex items-center p-2 group border border-transparent hover:border-outline-variant">
+<div class="bg-surface p-1.5 rounded-md border border-outline-variant mr-3 group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm">psychology</span>
+</div>
+<div class="flex-1">
+<div class="text-sm text-on-surface normal-case font-medium tracking-normal">LLM Call</div>
+<div class="text-[10px] text-on-surface-variant normal-case tracking-normal font-normal truncate">Generate text/json</div>
+</div>
+</div>
+<div class="text-on-surface-variant hover:bg-surface-variant rounded-lg mx-2 transition-all duration-200 active:scale-95 cursor-grab flex items-center p-2 group border border-transparent hover:border-outline-variant">
+<div class="bg-surface p-1.5 rounded-md border border-outline-variant mr-3 group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm">alt_route</span>
+</div>
+<div class="flex-1">
+<div class="text-sm text-on-surface normal-case font-medium tracking-normal">HTTP Request</div>
+<div class="text-[10px] text-on-surface-variant normal-case tracking-normal font-normal truncate">REST API calls</div>
+</div>
+</div>
+<div class="text-on-surface-variant hover:bg-surface-variant rounded-lg mx-2 transition-all duration-200 active:scale-95 cursor-grab flex items-center p-2 group border border-transparent hover:border-outline-variant">
+<div class="bg-surface p-1.5 rounded-md border border-outline-variant mr-3 group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm">database</span>
+</div>
+<div class="flex-1">
+<div class="text-sm text-on-surface normal-case font-medium tracking-normal">Database</div>
+<div class="text-[10px] text-on-surface-variant normal-case tracking-normal font-normal truncate">Read/Write records</div>
+</div>
+</div>
+<div class="text-on-surface-variant text-[10px] px-2 mb-2 mt-4">Logic</div>
+<div class="text-on-surface-variant hover:bg-surface-variant rounded-lg mx-2 transition-all duration-200 active:scale-95 cursor-grab flex items-center p-2 group border border-transparent hover:border-outline-variant">
+<div class="bg-surface p-1.5 rounded-md border border-outline-variant mr-3 group-hover:bg-primary-container group-hover:text-on-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm">mediation</span>
+</div>
+<div class="flex-1">
+<div class="text-sm text-on-surface normal-case font-medium tracking-normal">Logic</div>
+<div class="text-[10px] text-on-surface-variant normal-case tracking-normal font-normal truncate">If/Else branching</div>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<div class="mt-auto border-t border-outline-variant pt-2 px-2">
+<div class="text-on-surface-variant hover:bg-surface-variant rounded-lg mx-2 transition-all duration-200 cursor-pointer flex items-center p-2">
+<span class="material-symbols-outlined text-sm mr-3">bar_chart</span>
+<span class="text-sm normal-case font-medium tracking-normal">Usage</span>
+</div>
+<div class="text-on-surface-variant hover:bg-surface-variant rounded-lg mx-2 transition-all duration-200 cursor-pointer flex items-center p-2">
+<span class="material-symbols-outlined text-sm mr-3">menu_book</span>
+<span class="text-sm normal-case font-medium tracking-normal">Docs</span>
+</div>
+</div>
+</aside>
+<!-- Main Canvas Area -->
+<main class="flex-1 relative bg-surface-dim dot-grid overflow-hidden">
+<!-- Canvas Controls -->
+<div class="absolute bottom-6 left-6 z-10 flex flex-col space-y-2 bg-surface border border-outline-variant rounded-lg p-1 shadow-lg">
+<button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded transition-colors"><span class="material-symbols-outlined text-sm">add</span></button>
+<div class="h-px bg-outline-variant mx-1"></div>
+<button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded transition-colors"><span class="material-symbols-outlined text-sm">remove</span></button>
+<div class="h-px bg-outline-variant mx-1"></div>
+<button class="p-2 text-on-surface-variant hover:text-on-surface hover:bg-surface-variant rounded transition-colors"><span class="material-symbols-outlined text-sm">fit_screen</span></button>
+</div>
+<!-- Connections SVG Overlay -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none z-0">
+<!-- Webhook to DB Write -->
+<path class="flow-line-active" d="M 280 150 C 350 150, 350 250, 420 250"></path>
+<!-- DB Write to LLM Call -->
+<path class="flow-line" d="M 620 250 C 690 250, 690 150, 760 150"></path>
+</svg>
+<!-- Nodes Container -->
+<div class="absolute inset-0 w-full h-full cursor-grab z-10" id="canvas-container">
+<!-- Node 1: Trigger -->
+<div class="absolute top-[110px] left-[80px] w-52 bg-surface border border-outline-variant rounded-lg shadow-sm hover:border-on-surface-variant transition-colors cursor-pointer group">
+<div class="p-3 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest rounded-t-lg">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">api</span>
+<span class="text-sm font-semibold text-on-surface">Webhook Receive</span>
+</div>
+<div class="w-2 h-2 rounded-full bg-emerald-500" title="Completed"></div>
+</div>
+<div class="p-3">
+<div class="text-xs text-on-surface-variant truncate">POST /api/v1/trigger</div>
+</div>
+<div class="node-port output group-hover:border-primary"></div>
+</div>
+<!-- Node 2: Database -->
+<div class="absolute top-[210px] left-[420px] w-52 bg-surface border border-outline-variant rounded-lg shadow-sm hover:border-on-surface-variant transition-colors cursor-pointer group">
+<div class="p-3 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest rounded-t-lg">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-on-surface-variant text-sm">database</span>
+<span class="text-sm font-semibold text-on-surface">Log Request</span>
+</div>
+<div class="w-2 h-2 rounded-full bg-emerald-500" title="Completed"></div>
+</div>
+<div class="p-3">
+<div class="text-xs text-on-surface-variant truncate">Insert into 'requests_log'</div>
+</div>
+<div class="node-port input group-hover:border-primary"></div>
+<div class="node-port output group-hover:border-primary"></div>
+</div>
+<!-- Node 3: LLM Call (Selected/Active) -->
+<div class="absolute top-[110px] left-[760px] w-52 bg-surface border-2 border-primary rounded-lg shadow-[0_0_15px_rgba(192,193,255,0.15)] cursor-pointer group z-20">
+<div class="p-3 border-b border-outline-variant flex justify-between items-center bg-primary-container/10 rounded-t-md">
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-primary text-sm">psychology</span>
+<span class="text-sm font-semibold text-primary">Summarize Text</span>
+</div>
+<div class="w-2 h-2 rounded-full bg-blue-400 pulse-ring relative" title="Running">
+<div class="absolute inset-0 bg-blue-400 rounded-full animate-ping opacity-75"></div>
+</div>
+</div>
+<div class="p-3 bg-surface rounded-b-md">
+<div class="text-xs text-on-surface-variant truncate">Using gpt-4-turbo</div>
+<div class="mt-2 text-[10px] uppercase font-bold tracking-wider text-primary/70 flex items-center"><span class="material-symbols-outlined text-[12px] mr-1">sync</span> Processing...</div>
+</div>
+<div class="node-port input border-primary bg-primary-container"></div>
+<div class="node-port output border-outline-variant"></div>
+</div>
+</div>
+</main>
+<!-- Right Sidebar (Configuration Panel) -->
+<aside class="bg-surface-container w-80 border-l border-outline-variant h-full flex flex-col shadow-[-4px_0_15px_rgba(0,0,0,0.1)] z-20 shrink-0 transform transition-transform duration-300">
+<!-- Header -->
+<div class="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-low sticky top-0 z-10">
+<div class="flex items-center space-x-2">
+<div class="p-1.5 bg-primary-container text-on-primary-container rounded-md">
+<span class="material-symbols-outlined text-sm block">psychology</span>
+</div>
+<div>
+<h3 class="text-sm font-bold text-on-surface">Summarize Text</h3>
+<p class="text-xs text-on-surface-variant">LLM Call Node</p>
+</div>
+</div>
+<button class="text-on-surface-variant hover:bg-surface-variant p-1 rounded-lg transition-colors">
+<span class="material-symbols-outlined text-sm block">close</span>
+</button>
+</div>
+<!-- Configuration Form -->
+<div class="flex-1 overflow-y-auto p-4 space-y-6 bg-surface-container">
+<!-- Config Section: General -->
+<div class="space-y-4">
+<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Model Configuration</h4>
+<div>
+<label class="block text-xs font-medium text-on-surface mb-1.5">Provider</label>
+<select class="w-full bg-surface-container-highest border border-outline-variant text-on-surface text-sm rounded-lg focus:ring-primary focus:border-primary block p-2">
+<option>OpenAI</option>
+<option>Anthropic</option>
+<option>Local (Ollama)</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-medium text-on-surface mb-1.5">Model Selection</label>
+<select class="w-full bg-surface-container-highest border border-outline-variant text-on-surface text-sm rounded-lg focus:ring-primary focus:border-primary block p-2">
+<option>gpt-4-turbo</option>
+<option>gpt-3.5-turbo</option>
+</select>
+<p class="mt-1 text-[10px] text-on-surface-variant">Selected model costs approx $0.01/1k tokens.</p>
+</div>
+</div>
+<div class="h-px bg-outline-variant/50 w-full"></div>
+<!-- Config Section: Prompt -->
+<div class="space-y-4">
+<div class="flex justify-between items-end mb-2">
+<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Prompt Engineering</h4>
+<button class="text-[10px] text-primary hover:underline">Insert Variable</button>
+</div>
+<div>
+<label class="block text-xs font-medium text-on-surface mb-1.5">System Prompt</label>
+<textarea class="w-full bg-surface-container-highest border border-outline-variant text-on-surface text-sm rounded-lg focus:ring-primary focus:border-primary block p-2 font-mono text-xs" rows="3">You are a helpful assistant that summarizes technical documents.</textarea>
+</div>
+<div>
+<label class="block text-xs font-medium text-on-surface mb-1.5">User Prompt Template</label>
+<div class="relative rounded-lg border border-outline-variant overflow-hidden focus-within:ring-1 focus-within:ring-primary focus-within:border-primary">
+<div class="bg-surface-variant px-3 py-1.5 border-b border-outline-variant flex space-x-2">
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined text-[14px]">format_bold</span></button>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined text-[14px]">data_object</span></button>
+</div>
+<textarea class="w-full bg-surface-container-highest border-0 text-on-surface text-sm focus:ring-0 block p-2 font-mono text-xs resize-y" rows="5">Summarize the following text extracted from the previous step:
+                            
+{{node.log_request.body.text_content}}
+
+Keep the summary under 3 paragraphs and highlight key actionable items.</textarea>
+</div>
+</div>
+</div>
+<div class="h-px bg-outline-variant/50 w-full"></div>
+<!-- Config Section: Parameters -->
+<div class="space-y-4">
+<h4 class="text-xs font-bold text-on-surface-variant uppercase tracking-wider mb-2">Parameters</h4>
+<div>
+<div class="flex justify-between items-center mb-1.5">
+<label class="block text-xs font-medium text-on-surface">Temperature: <span class="text-primary" id="temp-val">0.7</span></label>
+</div>
+<input class="w-full h-1 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-primary" max="2" min="0" step="0.1" type="range" value="0.7"/>
+</div>
+<div>
+<label class="block text-xs font-medium text-on-surface mb-1.5">Max Tokens</label>
+<input class="w-full bg-surface-container-highest border border-outline-variant text-on-surface text-sm rounded-lg focus:ring-primary focus:border-primary block p-2" type="number" value="1024"/>
+</div>
+<div class="flex items-center pt-2">
+<input class="w-4 h-4 text-primary bg-surface-container-highest border-outline-variant rounded focus:ring-primary focus:ring-2" id="json-mode" type="checkbox"/>
+<label class="ml-2 text-xs font-medium text-on-surface" for="json-mode">Enforce JSON Output</label>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="p-4 border-t border-outline-variant bg-surface-container-low">
+<button class="w-full bg-primary text-on-primary hover:bg-primary-fixed-dim px-4 py-2 rounded-lg transition-colors text-sm font-semibold shadow-sm flex items-center justify-center space-x-2">
+<span class="material-symbols-outlined text-sm">save</span>
+<span>Save Configuration</span>
+</button>
+</div>
+</aside>
+</div>
+<script>
+        // Simple drag interaction script for visual demo purposes
+        const canvas = document.getElementById('canvas-container');
+        let isDragging = false;
+        let startX, startY, scrollLeft, scrollTop;
+
+        canvas.addEventListener('mousedown', (e) => {
+            if(e.target === canvas) {
+                isDragging = true;
+                canvas.classList.add('cursor-grabbing');
+                startX = e.pageX - canvas.offsetLeft;
+                startY = e.pageY - canvas.offsetTop;
+                scrollLeft = canvas.scrollLeft;
+                scrollTop = canvas.scrollTop;
+            }
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            canvas.classList.remove('cursor-grabbing');
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            canvas.classList.remove('cursor-grabbing');
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            e.preventDefault();
+            // In a real app, this would pan the viewport or move nodes
+        });
+    </script>
+</body></html>
