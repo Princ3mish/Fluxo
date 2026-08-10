@@ -1,0 +1,14 @@
+subscription StepRunsLive($workflow_run_id: uuid!) {
+  step_runs(where: {workflow_run_id: {_eq: $workflow_run_id}}, order_by: {started_at: asc}) {
+    id
+    step_id
+    status
+    output
+    error
+    attempt_count
+    approved_by
+    approved_at
+    started_at
+    finished_at
+  }
+}

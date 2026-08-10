@@ -1,0 +1,31 @@
+query GetOrgWorkflows($org_id: uuid!) {
+  workflows(where: {org_id: {_eq: $org_id}}) {
+    id
+    name
+    created_at
+    steps {
+      id
+      step_order
+      type
+      config
+    }
+    triggers {
+      id
+      type
+      config
+    }
+    runs(order_by: {started_at: desc}, limit: 1) {
+      id
+      status
+      started_at
+      finished_at
+    }
+  }
+}
+
+query GetOrgQuota($org_id: uuid!) {
+  organizations_by_pk(id: $org_id) {
+    quota_used
+    quota_limit
+  }
+}
